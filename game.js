@@ -29,23 +29,17 @@ export class CaliforniaClimateFarmer {
         this.year = 1;
         this.season = 'Spring';
         this.seasonDay = 1;
-        // Lower starting balance for tighter early-game economy
         this.balance = 20000;  
-        // Adjust farmValue to reflect smaller operation
         this.farmValue = 50000;
         this.farmHealth = 85;
-        // More modest water reserve to start
         this.waterReserve = 60;  
         this.paused = false;
         this.speed = 5;
         this.currentOverlay = 'crop';
 
         //--- ECONOMIC PARAMETERS ---
-        // Daily overhead cost: scales with farm size (e.g. $10 per cell = 10 * 100 = $1000/day at 10x10)
-        this.overheadCostPerCell = 10;
-
-        // Inflation factor: Each year, certain costs increase by this rate (e.g., 3%).
-        this.annualInflationRate = 0.03;
+        this.overheadCostPerCell = 10;     // e.g., $10/cell
+        this.annualInflationRate = 0.03;   // 3% inflation yearly
 
         //--- DEBUG LOGGING ---
         this.logger = new Logger(100, this.debugMode ? 2 : 1);
@@ -124,38 +118,39 @@ export class CaliforniaClimateFarmer {
 
     //--- UPDATE GAME STATE ---
     update() {
-        // Advance day
+        // 1. Advance day
         this.day++;
         this.seasonDay++;
 
-        // NEW: Deduct daily overhead
+        // 2. Pay daily overhead
         this.payDailyOverhead();
 
-        // Update crop growth and conditions
+        // 3. Update all farm cells
         this.updateFarm();
 
-        // Check for season change (every 90 days)
+        // 4. Auto-irrigate if Drip or AI irrigation is unlocked
+        this.autoIrrigate();
+
+        // 5. Season / year checks
         if (this.seasonDay > 90) {
             this.seasonDay = 1;
             this.advanceSeason();
         }
-
-        // Check for year change
         if (this.day > 360) {
             this.day = 1;
             this.advanceYear();
         }
 
-        // Process events
+        // 6. Process any events that occur today
         this.processPendingEvents();
 
-        // Update farm health
+        // 7. Update farm health
         this.farmHealth = calculateFarmHealth(this.grid, this.waterReserve);
 
-        // Update UI
+        // 8. Update UI
         this.ui.updateHUD();
 
-        // Chance of random event
+        // 9. Chance for random event
         if (Math.random() < 0.01) {
             const farmState = {
                 climate: this.climate,
@@ -173,9 +168,70 @@ export class CaliforniaClimateFarmer {
             }
         }
 
-        // If in test mode, run test logic
+        // 10. If in test mode, run test logic
         if (this.testMode) {
             this.runTestUpdate();
+        }
+    }
+
+    //--- AUTO-IRRIGATION METHOD ---
+    autoIrrigate() {
+        // Check if player has Drip Irrigation or AI-Driven Irrigation
+        const hasDrip = this.hasTechnology('drip_irrigation');
+        const hasAI   = this.hasTechnology('ai_irrigation');
+        if (!hasDrip && !hasAI) return;
+
+        // Decide how much water a cell needs to be considered "under-watered"
+        const waterThreshold = 70;
+
+        // Base water usage per cell
+        let waterUsagePerCell = 3; // % of water reserve used per irrigated cell
+        let efficiencyMultiplier = 1.0;
+
+        // Stack drip + AI irrigation benefits if both are unlocked
+        if (hasDrip) efficiencyMultiplier *= 1.2;  // Drip is 20% more efficient
+        if (hasAI)   efficiencyMultiplier *= 1.5;  // AI is 50% more efficient
+
+        // More efficiency => less water usage => invert the multiplier
+        const effectiveUsageFactor = 1 / efficiencyMultiplier;
+
+        let irrigatedCount = 0;
+
+        // Check each cell in the grid
+        for (let row = 0; row < this.gridSize; row++) {
+            for (let col = 0; col < this.gridSize; col++) {
+                const cell = this.grid[row][col];
+
+                // Skip empty or already well-watered cells
+                if (cell.crop.id === 'empty') continue;
+                if (cell.waterLevel >= waterThreshold) continue;
+
+                // Calculate actual usage
+                const actualUsage = Math.round(waterUsagePerCell * effectiveUsageFactor);
+                if (this.waterReserve < actualUsage) {
+                    this.addEvent(
+                        `Ran out of water for automatic irrigation after watering ${irrigatedCount} cells.`,
+                        true
+                    );
+                    return;
+                }
+
+                // Deduct from water reserve
+                this.waterReserve -= actualUsage;
+
+                // Boost cell water level
+                let waterBoost = Math.round(20 * efficiencyMultiplier);  // e.g. base 20
+                cell.waterLevel = Math.min(100, cell.waterLevel + waterBoost);
+                cell.irrigated = true; // If you track an 'irrigated' flag
+
+                irrigatedCount++;
+            }
+        }
+
+        if (irrigatedCount > 0) {
+            this.addEvent(
+                `Auto-irrigated ${irrigatedCount} plots (drip/AI). Water reserve left: ${this.waterReserve}%.`
+            );
         }
     }
 
@@ -186,10 +242,8 @@ export class CaliforniaClimateFarmer {
 
         if (this.balance >= overhead) {
             this.balance -= overhead;
-            // Minimal logging for overhead
             this.logger.log(`Paid daily overhead: $${overhead}`, 2);
         } else {
-            // If you can’t afford overhead, you go negative
             this.balance -= overhead;
             this.addEvent(`You went into debt paying overhead: -$${overhead}`, true);
         }
@@ -210,15 +264,18 @@ export class CaliforniaClimateFarmer {
             }
         }
 
+        // Notify user of harvestable plots
         harvestReadyCells.forEach(({ row, col }) => {
             const cell = this.grid[row][col];
-            this.addEvent(`${cell.crop.name} at row ${row+1}, column ${col+1} is ready for harvest!`);
+            this.addEvent(
+                `${cell.crop.name} at row ${row+1}, column ${col+1} is ready for harvest!`
+            );
         });
 
         // Re-render UI
         this.ui.render();
     }
-
+    
     //--- ADVANCE SEASON ---
     advanceSeason() {
         const seasons = ['Spring', 'Summer', 'Fall', 'Winter'];
