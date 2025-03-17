@@ -346,7 +346,12 @@ export class UIManager {
         document.getElementById('date-display').textContent = `${this.game.season}, Year ${this.game.year}`;
         document.getElementById('year-display').textContent = this.game.year;
         document.getElementById('season-display').textContent = this.game.season;
+    
+        // ▼ ADD THIS LINE ▼
+        document.getElementById('version-string').textContent = '2.0.0';  
+        // You can store this version in the game object or keep it here directly
     }
+
     
     // Update events list display
     updateEventsList() {
