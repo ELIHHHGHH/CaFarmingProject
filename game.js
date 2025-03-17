@@ -634,43 +634,6 @@ export class CaliforniaClimateFarmer {
         return true;
     }
 
-    //--- IRRIGATE A CELL (WITH INFLATION-AWARE COST) ---
-    irrigateCell(row, col) {
-        const cell = this.grid[row][col];
-        if (cell.crop.id === 'empty') {
-            this.addEvent('Cannot irrigate an empty plot.', true);
-            return false;
-        }
-        if (cell.irrigated) {
-            this.addEvent('This plot is already irrigated.', true);
-            return false;
-        }
-
-        // Example: base cost $200, inflated each year
-        const inflationMultiplier = Math.pow((1 + this.annualInflationRate), this.year - 1);
-        const irrigationCost = Math.round(200 * inflationMultiplier);
-
-        if (this.balance < irrigationCost) {
-            this.addEvent(`Cannot afford irrigation. Cost: $${irrigationCost}`, true);
-            return false;
-        }
-
-        this.balance -= irrigationCost;
-        const waterEfficiency = this.getTechEffectValue('waterEfficiency');
-        cell.irrigate(waterEfficiency);
-
-        // Additional tech effect
-        if (this.hasTechnology('ai_irrigation')) {
-            cell.expectedYield = Math.min(150, cell.expectedYield + 10);
-        }
-
-        this.ui.updateHUD();
-        this.ui.showCellInfo(row, col);
-        this.ui.render();
-
-        this.addEvent(`Irrigated plot at row ${row+1}, column ${col+1}. Cost: $${irrigationCost}`);
-        return true;
-    }
 
     //--- FERTILIZE A CELL (WITH INFLATION-AWARE COST) ---
     fertilizeCell(row, col) {
