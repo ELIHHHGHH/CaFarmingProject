@@ -76,12 +76,12 @@ export class Cell {
     // Apply irrigation
     irrigate(waterEfficiency = 1.0) {
         if (this.crop.id === 'empty') return false;
-        if (this.irrigated) return false;
-        
-        this.irrigated = true;
+    
+        // Remove the single-irrigation restriction
         this.waterLevel = Math.min(100, this.waterLevel + 30 * waterEfficiency);
         return true;
     }
+
 
     // Apply fertilizer
     fertilize(fertilizerEfficiency = 1.0) {
