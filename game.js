@@ -183,13 +183,14 @@ irrigateCell(row, col) {
         return false;
     }
 
-    // Reset irrigation count if it's a new day
+    // If you want to track how many times per day you’ve irrigated:
+    // Reset count if it's a new day
     if (!cell.irrigationCount || this.day !== cell.lastIrrigationDay) {
         cell.irrigationCount = 0;
         cell.lastIrrigationDay = this.day;
     }
 
-    // Inflation-aware irrigation cost
+    // Calculate cost with inflation
     const inflationMultiplier = Math.pow((1 + this.annualInflationRate), this.year - 1);
     const irrigationCost = Math.round(200 * inflationMultiplier);
 
@@ -198,28 +199,29 @@ irrigateCell(row, col) {
         return false;
     }
 
-    // Deduct cost
+    // Pay for irrigation
     this.balance -= irrigationCost;
 
-    // Calculate water efficiency
+    // Calculate water efficiency from tech
     const waterEfficiency = this.getTechEffectValue('waterEfficiency');
-    const baseWaterIncrease = 20;  // Base amount added per irrigation
+    const baseWaterIncrease = 20;  // Base water level increase
     const finalWaterIncrease = Math.round(baseWaterIncrease * waterEfficiency);
 
-    // Increase water level with *no* cap
+    // Allow multiple irrigations and remove any hard cap on water level:
     cell.waterLevel += finalWaterIncrease;
 
-    // Keep track of how many times we've irrigated this cell today
+    // Keep track
     cell.irrigationCount++;
-
-    // Update UI
     this.ui.updateHUD();
     this.ui.showCellInfo(row, col);
     this.ui.render();
 
-    this.addEvent(`Irrigated plot at row ${row+1}, column ${col+1} (Total: ${cell.irrigationCount} today). Cost: $${irrigationCost}`);
+    this.addEvent(
+      `Irrigated plot at row ${row+1}, col ${col+1}. (Today’s count: ${cell.irrigationCount}) Cost: $${irrigationCost}`
+    );
     return true;
 }
+
 
     //--- AUTO-IRRIGATION METHOD ---
     autoIrrigate() {
