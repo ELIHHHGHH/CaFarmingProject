@@ -264,7 +264,7 @@ export class CaliforniaClimateFarmer {
                 // Boost cell water level
                 let waterBoost = Math.round(20 * efficiencyMultiplier);  // e.g. base 20
                 cell.waterLevel = Math.min(100, cell.waterLevel + waterBoost);
-                cell.irrigated = true; // If you track an 'irrigated' flag
+                //cell.irrigated = true; // If you track an 'irrigated' flag
 
                 irrigatedCount++;
             }
