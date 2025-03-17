@@ -347,9 +347,6 @@ export class UIManager {
         document.getElementById('year-display').textContent = this.game.year;
         document.getElementById('season-display').textContent = this.game.season;
     
-        // ▼ ADD THIS LINE ▼
-        document.getElementById('version-string').textContent = '2.0.0';  
-        // You can store this version in the game object or keep it here directly
     }
 
     
@@ -448,23 +445,28 @@ export class UIManager {
     
     // Render the farm grid
     render() {
-        // Clear the canvas
+        // 1) Clear the canvas
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Calculate offset to center the grid
+    
+        // 2) Draw the grid
         const offsetX = (this.canvas.width - this.cellSize * this.game.gridSize) / 2;
         const offsetY = (this.canvas.height - this.cellSize * this.game.gridSize) / 2;
-
-        // Draw each cell
         for (let row = 0; row < this.game.gridSize; row++) {
             for (let col = 0; col < this.game.gridSize; col++) {
                 const x = offsetX + col * this.cellSize;
                 const y = offsetY + row * this.cellSize;
-
                 this.drawCell(x, y, row, col);
             }
         }
+    
+        // 3) Draw version text in bottom-right corner
+        this.ctx.font = '14px Arial';
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.textAlign = 'right';
+        this.ctx.textBaseline = 'bottom';
+        this.ctx.fillText(`Version ${this.game.version}`, this.canvas.width - 5, this.canvas.height - 5);
     }
+
     
     // Draw a single cell
     drawCell(x, y, row, col) {
