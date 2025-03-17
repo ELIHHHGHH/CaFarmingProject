@@ -234,7 +234,7 @@ export class UIManager {
         });
 
         // Update buttons based on cell state
-        document.getElementById('irrigate-btn').disabled = flase;
+        document.getElementById('irrigate-btn').disabled = false;
         document.getElementById('fertilize-btn').disabled = cell.fertilized;
         document.getElementById('harvest-btn').disabled = !cell.harvestReady;
 
