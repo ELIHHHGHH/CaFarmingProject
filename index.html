@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>California Climate Farmer</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to CSS file -->
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>California Climate Farmer <span class="badge">Year <span id="year-display">1</span></span> <span class="badge">Season: <span id="season-display">Spring</span></span></h1>
+            <div class="btn-group">
+                <button id="pause-btn" class="btn">Pause</button>
+                <button id="help-btn" class="btn secondary">Help</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="farm-grid-container">
+                <canvas id="farm-grid"></canvas>
+                <div class="overlay-controls">
+                    <select id="overlay-select">
+                        <option value="crop">Crop Type</option>
+                        <option value="water">Water Status</option>
+                        <option value="soil">Soil Health</option>
+                        <option value="yield">Expected Yield</option>
+                    </select>
+                </div>
+                <div class="grid-legend" id="grid-legend"></div>
+                <div id="tooltip" class="tooltip"></div>
+                <div id="cell-info" class="cell-info-panel">
+                    <h2>Plot Information</h2>
+                    <div id="cell-details"></div>
+                    <div class="crop-selection">
+                        <h3>Plant Crop</h3>
+                        <div id="crop-options"></div>
+                    </div>
+                    <div class="cell-actions">
+                        <button id="irrigate-btn" class="btn">Irrigate</button>
+                        <button id="fertilize-btn" class="btn">Fertilize</button>
+                        <button id="harvest-btn" class="btn">Harvest</button>
+                        <button id="close-cell-info" class="btn secondary">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="hud-panel">
+                    <h2>Farm Status</h2>
+                    <div class="stat">
+                        <span>Bank Balance:</span>
+                        <span class="stat-value">$<span id="balance">100000</span></span>
+                    </div>
+                    <div class="stat">
+                        <span>Farm Value:</span>
+                        <span class="stat-value">$<span id="farm-value">250000</span></span>
+                    </div>
+                    <div class="stat">
+                        <span>Farm Health:</span>
+                        <span class="stat-value"><span id="farm-health">85</span>%</span>
+                    </div>
+                    <div class="stat">
+                        <span>Water Reserve:</span>
+                        <span class="stat-value"><span id="water-reserve">75</span>%</span>
+                    </div>
+                    <div class="stat">
+                        <span>Date:</span>
+                        <span class="stat-value" id="date-display">Spring, Year 1</span>
+                    </div>
+                    <div class="speed-control">
+                        <span>Speed:</span>
+                        <input type="range" id="speed-slider" min="1" max="10" value="5">
+                        <span id="speed-value">5x</span>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <h2>Actions</h2>
+                    <div class="radio-group">
+                        <div>
+                            <input type="radio" id="plant-action" name="action" value="plant" checked>
+                            <label for="plant-action">Plant/Manage</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="irrigate-action" name="action" value="irrigate">
+                            <label for="irrigate-action">Irrigation</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="fertilize-action" name="action" value="fertilize">
+                            <label for="fertilize-action">Fertilize</label>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button id="market-btn" class="btn">Market</button>
+                        <button id="research-btn" class="btn secondary">Research</button>
+                    </div>
+                </div>
+
+                <div class="events-panel">
+                    <h2>Events & Notifications</h2>
+                    <div id="events-container">
+                        <div class="event">
+                            <div class="event-date">Spring, Year 1</div>
+                            <div>Welcome to your farm! Start by planting crops and monitoring their growth.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-panel">
+                    <h2>Research Progress</h2>
+                    <div id="tech-container">
+                        <!-- Tech items will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>California Climate Farmer - Help</h2>
+            <p>Welcome to your farm in California! As a climate-conscious farmer, your goal is to adapt and thrive under changing environmental conditions.</p>
+            <h3>Getting Started</h3>
+            <ul>
+                <li>Click on any plot to view information and plant crops</li>
+                <li>Different crops have different water needs, growth times, and profits</li>
+                <li>Monitor your water reserves and soil health</li>
+                <li>Research new technologies to adapt to climate events</li>
+            </ul>
+            <h3>Controls</h3>
+            <ul>
+                <li>Use the speed slider to control time passage</li>
+                <li>Pause anytime to make decisions</li>
+                <li>Change the overlay view to see different aspects of your farm</li>
+            </ul>
+            <h3>Climate Events</h3>
+            <p>Be prepared for droughts, floods, heatwaves, and other climate events. Different technologies and strategies can help you adapt and minimize their impact.</p>
+        </div>
+    </div>
+
+    <div id="research-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>Research & Technology</h2>
+            <p>Invest in new technologies to adapt to climate change and improve your farm's efficiency.</p>
+            <div id="research-options"></div>
+        </div>
+    </div>
+
+    <div id="market-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>Market Prices & Information</h2>
+            <div id="market-info"></div>
+        </div>
+    </div>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-container">
+        <div class="splash-content">
+            <h1 class="splash-title">California Climate Farmer</h1>
+            <p class="splash-description">Manage your farm and adapt to climate challenges in this simulation game.</p>
+
+            <div class="splash-options">
+                <button id="regular-game-btn" class="btn">Start Regular Game</button>
+                <button id="test-mode-btn" class="btn secondary">Run Tests</button>
+            </div>
+
+            <div id="test-options" class="test-options">
+                <h3>Select Test Strategy:</h3>
+                <div class="test-list">
+                    <div>
+                        <input type="checkbox" id="test-all" checked>
+                        <label for="test-all">Run All Tests</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="test-monoculture">
+                        <label for="test-monoculture">Monoculture Strategy</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="test-diverse">
+                        <label for="test-diverse">Diverse Crops Strategy</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="test-tech-focus">
+                        <label for="test-tech-focus">Technology Focus Strategy</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="test-water-saving">
+                        <label for="test-water-saving">Water Conservation Strategy</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="test-no-action">
+                        <label for="test-no-action">No Action Strategy</label>
+                    </div>
+                </div>
+                <div class="btn-group" style="margin-top: 1rem;">
+                    <button id="run-selected-tests-btn" class="btn">Run Selected Tests</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Panel -->
+    <div id="debug-panel" class="debug-panel">
+        <h3>Debug Information</h3>
+        <div id="debug-content"></div>
+    </div>
+    
+    <!-- Debug logging script -->
+    <script>
+    // Create visual error display for debugging
+    (function() {
+        // Override console methods to display on page
+        const originalConsole = {
+            log: console.log,
+            warn: console.warn,
+            error: console.error
+        };
+        
+        // Create a visual log panel
+        const createLogPanel = () => {
+            const panel = document.createElement('div');
+            panel.id = 'debug-log-panel';
+            panel.style.position = 'fixed';
+            panel.style.bottom = '10px';
+            panel.style.right = '10px';
+            panel.style.width = '400px';
+            panel.style.maxHeight = '300px';
+            panel.style.overflowY = 'auto';
+            panel.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            panel.style.color = '#00ff00';
+            panel.style.fontFamily = 'monospace';
+            panel.style.fontSize = '12px';
+            panel.style.padding = '10px';
+            panel.style.borderRadius = '5px';
+            panel.style.zIndex = '9999';
+            
+            // Add controls
+            const controls = document.createElement('div');
+            controls.style.marginBottom = '10px';
+            controls.innerHTML = `
+                <button id="clear-log" style="background:#333;color:white;border:none;padding:3px 8px;margin-right:5px;">Clear</button>
+                <button id="close-log" style="background:#333;color:white;border:none;padding:3px 8px;">Close</button>
+            `;
+            panel.appendChild(controls);
+            
+            // Add log container
+            const logContainer = document.createElement('div');
+            logContainer.id = 'log-container';
+            panel.appendChild(logContainer);
+            
+            // Add to document
+            document.body.appendChild(panel);
+            
+            // Add event listeners for controls
+            document.getElementById('clear-log').addEventListener('click', () => {
+                document.getElementById('log-container').innerHTML = '';
+            });
+            
+            document.getElementById('close-log').addEventListener('click', () => {
+                panel.style.display = 'none';
+            });
+            
+            return panel;
+        };
+        
+        // Global error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+            const errorMsg = `ERROR: ${message} at ${source}:${lineno}:${colno}`;
+            console.error(errorMsg);
+            return false;
+        };
+        
+        // Wait until DOM is loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            const logPanel = createLogPanel();
+            const logContainer = document.getElementById('log-container');
+            
+            // Override console methods
+            console.log = function() {
+                originalConsole.log.apply(console, arguments);
+                addLogEntry('log', Array.from(arguments));
+            };
+            
+            console.warn = function() {
+                originalConsole.warn.apply(console, arguments);
+                addLogEntry('warn', Array.from(arguments));
+            };
+            
+            console.error = function() {
+                originalConsole.error.apply(console, arguments);
+                addLogEntry('error', Array.from(arguments));
+            };
+            
+            function addLogEntry(type, args) {
+                const entry = document.createElement('div');
+                entry.style.borderBottom = '1px solid #333';
+                entry.style.padding = '3px 0';
+                
+                // Format the time
+                const time = new Date().toTimeString().split(' ')[0];
+                let color = '#00ff00';
+                let prefix = 'LOG';
+                
+                if (type === 'warn') {
+                    color = '#ffff00';
+                    prefix = 'WARN';
+                } else if (type === 'error') {
+                    color = '#ff0000';
+                    prefix = 'ERROR';
+                }
+                
+                // Format the message
+                const message = args.map(arg => {
+                    if (typeof arg === 'object') {
+                        try {
+                            return JSON.stringify(arg);
+                        } catch (e) {
+                            return String(arg);
+                        }
+                    }
+                    return String(arg);
+                }).join(' ');
+                
+                entry.innerHTML = `<span style="color:#999;">[${time}]</span> <span style="color:${color};">${prefix}:</span> ${message}`;
+                logContainer.appendChild(entry);
+                
+                // Auto-scroll to bottom
+                logPanel.scrollTop = logPanel.scrollHeight;
+                
+                // Limit entries
+                while (logContainer.children.length > 100) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+            }
+            
+            // Test log
+            console.log('Debug logger initialized');
+        });
+    })();
+    
+    // Add module import error tracking
+    window.addEventListener('error', function(e) {
+        if (e.filename && e.filename.includes('.js')) {
+            console.error(`Module error in ${e.filename.split('/').pop()}: ${e.message}`);
+        }
+    });
+    </script>
+    
+    <!-- REMOVE THE TESTING SCRIPT HERE - This conflicts with main.js -->
+    
+    <!-- Keep only the module script -->
+    <script type="module" src="scripts/main.js"></script>
+</body>
+</html>
