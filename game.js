@@ -174,47 +174,52 @@ export class CaliforniaClimateFarmer {
         }
     }
     //--- IRRIGATE A CELL (NOW ALLOWS MULTIPLE IRRIGATIONS PER DAY) ---
-    irrigateCell(row, col) {
-        const cell = this.grid[row][col];
-    
-        if (cell.crop.id === 'empty') {
-            this.addEvent('Cannot irrigate an empty plot.', true);
-            return false;
-        }
-    
-        // New: Track total irrigations per day for the cell
-        if (!cell.irrigationCount || this.day !== cell.lastIrrigationDay) {
-            cell.irrigationCount = 0;
-            cell.lastIrrigationDay = this.day;
-        }
-    
-        // Example: base irrigation cost is $200, adjusted for inflation
-        const inflationMultiplier = Math.pow((1 + this.annualInflationRate), this.year - 1);
-        const irrigationCost = Math.round(200 * inflationMultiplier);
-    
-        if (this.balance < irrigationCost) {
-            this.addEvent(`Cannot afford irrigation. Cost: $${irrigationCost}`, true);
-            return false;
-        }
-    
-        this.balance -= irrigationCost;
-    
-        // Calculate water efficiency from researched technologies
-        const waterEfficiency = this.getTechEffectValue('waterEfficiency');
-        const baseWaterIncrease = 20; // Base increase in water level per irrigation
-        const finalWaterIncrease = Math.round(baseWaterIncrease * waterEfficiency);
-    
-        // Increase water level (no cap)
-        cell.waterLevel += finalWaterIncrease;
-        cell.irrigationCount++;
-    
-        this.ui.updateHUD();
-        this.ui.showCellInfo(row, col);
-        this.ui.render();
-    
-        this.addEvent(`Irrigated plot at row ${row+1}, column ${col+1} (Total: ${cell.irrigationCount} today). Cost: $${irrigationCost}`);
-        return true;
+//--- IRRIGATE A CELL (MULTIPLE TIMES PER DAY, NO CAP) ---
+irrigateCell(row, col) {
+    const cell = this.grid[row][col];
+
+    if (cell.crop.id === 'empty') {
+        this.addEvent('Cannot irrigate an empty plot.', true);
+        return false;
     }
+
+    // Reset irrigation count if it's a new day
+    if (!cell.irrigationCount || this.day !== cell.lastIrrigationDay) {
+        cell.irrigationCount = 0;
+        cell.lastIrrigationDay = this.day;
+    }
+
+    // Inflation-aware irrigation cost
+    const inflationMultiplier = Math.pow((1 + this.annualInflationRate), this.year - 1);
+    const irrigationCost = Math.round(200 * inflationMultiplier);
+
+    if (this.balance < irrigationCost) {
+        this.addEvent(`Cannot afford irrigation. Cost: $${irrigationCost}`, true);
+        return false;
+    }
+
+    // Deduct cost
+    this.balance -= irrigationCost;
+
+    // Calculate water efficiency
+    const waterEfficiency = this.getTechEffectValue('waterEfficiency');
+    const baseWaterIncrease = 20;  // Base amount added per irrigation
+    const finalWaterIncrease = Math.round(baseWaterIncrease * waterEfficiency);
+
+    // Increase water level with *no* cap
+    cell.waterLevel += finalWaterIncrease;
+
+    // Keep track of how many times we've irrigated this cell today
+    cell.irrigationCount++;
+
+    // Update UI
+    this.ui.updateHUD();
+    this.ui.showCellInfo(row, col);
+    this.ui.render();
+
+    this.addEvent(`Irrigated plot at row ${row+1}, column ${col+1} (Total: ${cell.irrigationCount} today). Cost: $${irrigationCost}`);
+    return true;
+}
 
     //--- AUTO-IRRIGATION METHOD ---
     autoIrrigate() {
